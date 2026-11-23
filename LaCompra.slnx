@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/LaCompra.Core/LaCompra.Core.csproj" />
+  <Project Path="src/LaCompra.Application/LaCompra.Application.csproj" />
+  <Project Path="src/LaCompra.Infrastructure/LaCompra.Infrastructure.csproj" />
+  <Project Path="src/LaCompra.Web/LaCompra.Web.csproj" />
+</Solution>
