@@ -1,0 +1,21 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: lacompra-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: lacompra
+      MYSQL_USER: lacompra
+      MYSQL_PASSWORD: CHANGE_ME
+      MYSQL_ROOT_PASSWORD: CHANGE_ROOT_ME
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - lacompra-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+volumes:
+  lacompra-mysql-data:
