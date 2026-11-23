@@ -1,0 +1,51 @@
+@page "/"
+@inject IShoppingListService ShoppingList
+
+<PageTitle>LaCompra · Lista</PageTitle>
+<main class="page">
+    <header class="page-header"><p class="eyebrow">COMPRA COMPARTIDA</p><h1>LaCompra</h1><p class="subtitle">Lo que hace falta en casa, en un solo sitio.</p></header>
+    <section class="panel">
+        <h2>Añadir a la lista</h2>
+        <EditForm Model="_request" OnValidSubmit="AddItemAsync">
+            <DataAnnotationsValidator />
+            <div class="form-grid">
+                <label><span>Artículo</span><InputText @bind-Value="_request.Description" placeholder="Ej. Leche entera" /><ValidationMessage For="@(() => _request.Description)" /></label>
+                <label class="quantity"><span>Cantidad</span><InputNumber @bind-Value="_request.Quantity" min="0.001" step="0.001" /><ValidationMessage For="@(() => _request.Quantity)" /></label>
+                <button type="submit" class="primary">Añadir</button>
+            </div>
+        </EditForm>
+    </section>
+    <section class="panel list-panel">
+        <div class="section-heading"><h2>Lista pendiente</h2><span class="count">@_items.Count artículos</span></div>
+        @if (_loading) { <p class="empty">Cargando lista...</p> }
+        else if (_items.Count == 0) { <div class="empty"><strong>La lista está vacía</strong><span>Añade el primer artículo para empezar.</span></div> }
+        else {
+            @foreach (var item in _items) {
+                <article class="shopping-item" @key="item.Id"><div><strong>@item.Description</strong><small>Cantidad: @item.Quantity.ToString("0.###")</small></div><button class="remove" @onclick="() => RemoveItemAsync(item.Id)">Quitar</button></article>
+            }
+        }
+    </section>
+    @if (!string.IsNullOrWhiteSpace(_error)) { <p class="error">@_error</p> }
+</main>
+
+@code {
+    private readonly CreateShoppingItemRequest _request = new();
+    private IReadOnlyList<ShoppingItemDto> _items = [];
+    private bool _loading = true;
+    private string? _error;
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+    private async Task LoadAsync() {
+        _loading = true;
+        try { _items = await ShoppingList.GetAllAsync(); _error = null; }
+        catch { _error = "No se pudo cargar la lista. Comprueba la conexión con MySQL."; }
+        finally { _loading = false; }
+    }
+    private async Task AddItemAsync() {
+        try { await ShoppingList.AddAsync(_request); _request.Description = string.Empty; _request.Quantity = 1; await LoadAsync(); }
+        catch { _error = "No se pudo añadir el artículo."; }
+    }
+    private async Task RemoveItemAsync(int id) {
+        try { await ShoppingList.RemoveAsync(id); await LoadAsync(); }
+        catch { _error = "No se pudo eliminar el artículo."; }
+    }
+}
